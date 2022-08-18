@@ -1,11 +1,12 @@
 package com.jakubu9333.pushupcounter
 
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
+import androidx.annotation.RequiresApi
 import com.jakubu9333.pushupcounter.databinding.FragmentFirstBinding
 
 /**
@@ -29,14 +30,21 @@ class FirstFragment : Fragment() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        var date=0
+        binding.lifecycleOwner = viewLifecycleOwner
+        val date= DateServicesData()
+        binding.date=date
+
+
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonNext.setOnClickListener {
-
+            date.addDay()
         }
-        binding.buttonPrev.setOnClickListener{}
+        binding.buttonPrev.setOnClickListener{
+            date.minusDay()
+        }
     }
 
     override fun onDestroyView() {
