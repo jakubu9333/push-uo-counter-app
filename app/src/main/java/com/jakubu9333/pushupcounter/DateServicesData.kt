@@ -16,10 +16,10 @@ import java.time.format.DateTimeFormatter
 @RequiresApi(Build.VERSION_CODES.O)
 class DateServicesData() {
 
-    private var date = LocalDate.now()
+     var date = LocalDate.now()
     private val _data = MutableLiveData<DataHolder>()
     val data: LiveData<DataHolder> = _data
-    private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
     init {
         _data.value=DataHolder()
         changeData()
@@ -40,12 +40,12 @@ class DateServicesData() {
         changeData()
     }
     private fun isToday():Boolean{
-        return date.format(formatter)==LocalDate.now().format(formatter)
+        return date==LocalDate.now()
     }
 
 
     override fun toString(): String {
-
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
         return date.format(formatter)
     }
