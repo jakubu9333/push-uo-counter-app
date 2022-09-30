@@ -20,6 +20,8 @@ import com.jakubu9333.pushupcounter.databinding.FragmentDayBinding
 import com.jakubu9333.pushupcounter.viewmodels.PushUpsViewModel
 import com.jakubu9333.pushupcounter.viewmodels.PushUpsViewModelFactory
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.onEach
 import java.time.LocalDate
 
 
@@ -106,7 +108,7 @@ class DayFragment : Fragment() {
             val number = numberInEntry()
             if (number>0) {
                 addToCount(date.date,number)
-                notifyInTime(30)
+                notifyInTime(0,10)
             }
         }
     }
@@ -128,10 +130,9 @@ class DayFragment : Fragment() {
     private fun notifyInTime(minutes:Int=30, seconds: Int =0) {
         val scope = MainScope()
 
-        //cancelation of past notificatons
+        //cancel of past notification
 
         runningNotificationJob.cancel()
-
 
 
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -148,35 +149,39 @@ class DayFragment : Fragment() {
                 .setAutoCancel(true)
 
         }
-        val maxTime =60*minutes+seconds
+        //#Todo repair overlaping notifications
+        val maxTime = 60 * minutes + seconds
         var timeCurrent = 0
-        if (builder != null) {
-            context?.let {
-                NotificationManagerCompat.from(it).apply {
-                    // Issue the initial notification with zero progress
-                    builder.setProgress(maxTime, timeCurrent, false)
-                    notify(0, builder.build())
-                    runningNotificationJob=Job()
-                    scope.launch(runningNotificationJob) {
-                       repeat(maxTime){index->
-                            timeCurrent += 1
+        val timer = (0..maxTime)
+            .asSequence()
+            .asFlow()
+            .onEach { delay(1_000)}
+                if (builder != null) {
+                    context?.let {
+                        NotificationManagerCompat.from(it).apply {
+                            // Issue the initial notification with zero progress
                             builder.setProgress(maxTime, timeCurrent, false)
-                            val time = (maxTime - index)
-                            val stringTime = (" ${time / 60} minutes ${time % 60} seconds")
-                            builder.setContentText(stringTime)
                             notify(0, builder.build())
-                            delay(1000L)
-                        }
-                        builder.setContentText("Time to do push ups")
-                            .setProgress(0, 0, false)
-                        notify(0, builder.build())
+                            runningNotificationJob = Job()
+                            scope.launch(runningNotificationJob) {
+                                timer.collect {
+                                    timeCurrent += 1
+                                    val time = (maxTime - timeCurrent)
+                                    val stringTime = (" ${time / 60} minutes ${time % 60} seconds")
+                                    builder.setContentText(stringTime)
+                                    builder.setProgress(maxTime, timeCurrent, false)
+                                    notify(0,builder.build())
+
+                                }
+                                builder.setProgress(0,0,false)
+                                builder.setContentText("Time to do pushups")
+                                notify(0,builder.build())
+                            }
                     }
                 }
+
             }
-        }
-
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
