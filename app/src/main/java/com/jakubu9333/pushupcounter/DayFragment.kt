@@ -1,7 +1,8 @@
 package com.jakubu9333.pushupcounter
 
-import android.R
+
 import android.app.PendingIntent
+import android.content.Context
 
 import android.content.Intent
 import android.os.Build
@@ -15,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.preference.PreferenceManager
 import com.jakubu9333.pushupcounter.database.PushUps
 import com.jakubu9333.pushupcounter.databinding.FragmentDayBinding
 import com.jakubu9333.pushupcounter.viewmodels.PushUpsViewModel
@@ -69,7 +71,7 @@ class DayFragment : Fragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun addToCount(date: LocalDate, number:Int): Boolean {
+    fun addToCount(date: LocalDate, number: Int): Boolean {
 
         if (pushUpsItem == null) {
             viewModel.insertCounter(number, date)
@@ -83,16 +85,11 @@ class DayFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
         binding.lifecycleOwner = viewLifecycleOwner
         val date = DateServicesData()
         changingDay(date.date)
         binding.date = date
-
-        /*viewModel.getAll().asLiveData().observe(viewLifecycleOwner) { xd ->
-
-        }*/
+        val sp = PreferenceManager.getDefaultSharedPreferences(fragmentContext)
 
         binding.buttonNext.setOnClickListener {
             date.addDay()
@@ -104,14 +101,28 @@ class DayFragment : Fragment() {
         }
         binding.floatingActionButton.setOnClickListener {
 
-
+            val notify = sp.getBoolean("notify", true)
+            val minutes=sp.getInt("minutes",30)
+            val seconds=sp.getInt("seconds",30)
             val number = numberInEntry()
-            if (number>0) {
-                addToCount(date.date,number)
-                notifyInTime(0,10)
+            if (number > 0) {
+                addToCount(date.date, number)
+                if (notify) {
+                    notifyInTime(minutes, seconds)
+                }
             }
         }
+
     }
+
+    private lateinit var fragmentContext: Context
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        this.fragmentContext = context
+    }
+
 
     //returns -1 for bad format
     private fun numberInEntry(): Int {
@@ -125,63 +136,55 @@ class DayFragment : Fragment() {
         return numberText.toInt()
     }
 
-    private var runningNotificationJob:Job= Job()
+    private var runningNotificationJob: Job = Job()
+
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun notifyInTime(minutes:Int=30, seconds: Int =0) {
+    private fun notifyInTime(minutes: Int = 30, seconds: Int = 0) {
         val scope = MainScope()
 
         //cancel of past notification
-
         runningNotificationJob.cancel()
-
 
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        val builder = this.context?.let {
-            NotificationCompat.Builder(it, "my_channel_01")
-                .setSmallIcon(R.drawable.arrow_down_float)
-                .setContentTitle("Push ups")
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setContentIntent(pendingIntent)
-                .setOnlyAlertOnce(true)
-                .setAutoCancel(true)
+        val builder = NotificationCompat.Builder(this.fragmentContext, "my_channel_01")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Push ups")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setContentIntent(pendingIntent)
+            .setOnlyAlertOnce(true)
+            .setAutoCancel(true)
 
-        }
         //#Todo repair overlaping notifications
         val maxTime = 60 * minutes + seconds
         var timeCurrent = 0
         val timer = (0..maxTime)
             .asSequence()
             .asFlow()
-            .onEach { delay(1_000)}
-                if (builder != null) {
-                    context?.let {
-                        NotificationManagerCompat.from(it).apply {
-                            // Issue the initial notification with zero progress
-                            builder.setProgress(maxTime, timeCurrent, false)
-                            notify(0, builder.build())
-                            runningNotificationJob = Job()
-                            scope.launch(runningNotificationJob) {
-                                timer.collect {
-                                    timeCurrent += 1
-                                    val time = (maxTime - timeCurrent)
-                                    val stringTime = (" ${time / 60} minutes ${time % 60} seconds")
-                                    builder.setContentText(stringTime)
-                                    builder.setProgress(maxTime, timeCurrent, false)
-                                    notify(0,builder.build())
+            .onEach { delay(1_000) }
 
-                                }
-                                builder.setProgress(0,0,false)
-                                builder.setContentText("Time to do pushups")
-                                notify(0,builder.build())
-                            }
-                    }
+        NotificationManagerCompat.from(fragmentContext).apply {
+            builder.setProgress(maxTime, timeCurrent, false)
+            notify(0, builder.build())
+            runningNotificationJob = Job()
+            scope.launch(runningNotificationJob) {
+                timer.collect {
+                    timeCurrent += 1
+                    val time = (maxTime - timeCurrent)
+                    val stringTime = (" ${time / 60} minutes ${time % 60} seconds")
+                    builder.setContentText(stringTime)
+                    builder.setProgress(maxTime, timeCurrent, false)
+                    notify(0, builder.build())
                 }
-
+                builder.setProgress(0, 0, false)
+                builder.setContentText("Time to do pushups")
+                notify(0, builder.build())
             }
+        }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

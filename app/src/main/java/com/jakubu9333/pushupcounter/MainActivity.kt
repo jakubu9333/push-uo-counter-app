@@ -13,12 +13,14 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import androidx.navigation.NavController
 import com.jakubu9333.pushupcounter.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+    private lateinit var navController:NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         createNotificationChannel()
@@ -29,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
@@ -46,9 +48,13 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> settings()
             else -> super.onOptionsItemSelected(item)
         }
+    }
+    private fun settings():Boolean{
+        navController.navigate(R.id.action_DayFragment_to_settingsFragment)
+        return true
     }
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
