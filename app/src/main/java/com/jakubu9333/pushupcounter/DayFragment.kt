@@ -103,7 +103,6 @@ class DayFragment : Fragment() {
             if (number > 0) {
                 addToCount(date.date, number)
                 if (notify) {
-
                     notifyClass.notifyInTime(minutes, seconds)
                 }
             }
@@ -117,7 +116,10 @@ class DayFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         this.fragmentContext = context
-        this.notifyClass=Notification(context)
+        if (!this::notifyClass.isInitialized){
+            this.notifyClass=Notification(context)
+        }
+
     }
 
 
