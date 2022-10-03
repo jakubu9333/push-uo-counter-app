@@ -37,7 +37,7 @@ class Notification(private val context: Context) {
 
         val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         val builder = NotificationCompat.Builder(context, "my_channel_01")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_push_up_person)
             .setContentTitle("Push ups")
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)
