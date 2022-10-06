@@ -20,8 +20,11 @@ import java.time.temporal.ChronoUnit
  * @author Jakub Uhlarik
  */
 class Notification(private val context: Context) {
-    private var runningNotificationJob = Job()
-    private var notifyId = 0
+    companion object{
+        private var runningNotificationJob = Job()
+        private var notifyId = 0
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun notifyInTime(minutes: Int = 30, seconds: Int = 0) {

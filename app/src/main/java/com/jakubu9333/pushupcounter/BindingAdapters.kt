@@ -1,7 +1,7 @@
 package com.jakubu9333.pushupcounter
 
 import android.view.View
-import android.widget.Button
+import android.widget.ImageButton
 
 import androidx.databinding.BindingAdapter
 
@@ -12,7 +12,7 @@ import androidx.databinding.BindingAdapter
  */
 @BindingAdapter("unseen")
 fun bindButton(
-    button: Button,
+    button: ImageButton,
     invisible: Boolean
 ) {
     if (invisible) {

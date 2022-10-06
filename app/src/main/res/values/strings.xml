@@ -13,4 +13,5 @@
     <string name="wait_time">Wait time</string>
     <string name="wait_time_minutes">Minutes</string>
     <string name="wait_time_seconds">Seconds</string>
+    <string name="fakeeseday_22_22_2200">fakeeseday, 22.22.2200</string>
 </resources>

@@ -80,6 +80,7 @@ class DayFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+       // addSwipeControls()
         binding.lifecycleOwner = viewLifecycleOwner
         val date = DateServicesData()
         changingDay(date.date)
@@ -110,6 +111,12 @@ class DayFragment : Fragment() {
 
     }
 
+    /*private fun addSwipeControls() {
+        binding.dayFragmentLayout.setOnTouchListener(){
+
+        }
+    }*/
+
     private lateinit var notifyClass:Notification
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -121,6 +128,8 @@ class DayFragment : Fragment() {
         }
 
     }
+
+
 
 
     //returns -1 for bad format

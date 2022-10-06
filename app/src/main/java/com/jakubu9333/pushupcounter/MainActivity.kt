@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         navController.navigate(R.id.action_DayFragment_to_settingsFragment)
         return true
     }
+
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library

@@ -45,7 +45,7 @@ class DateServicesData() {
 
 
     override fun toString(): String {
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        val formatter = DateTimeFormatter.ofPattern("EEEE, dd.MM.yyyy")
 
         return date.format(formatter)
     }
