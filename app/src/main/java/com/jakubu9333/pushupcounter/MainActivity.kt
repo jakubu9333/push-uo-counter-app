@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.view.GestureDetector
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -13,19 +14,85 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
+
+import androidx.annotation.RequiresApi
+import androidx.core.view.GestureDetectorCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import com.jakubu9333.pushupcounter.databinding.ActivityMainBinding
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
+    inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+        private val SWIPE_THRESHOLD = 100
+        private val SWIPE_VEL_THRESHOLD = 100
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun onFling(
+            downEvent: MotionEvent?,
+            moveEvent: MotionEvent?,
+            velocityX: Float,
+            velocityY: Float
+        ): Boolean {
+            val diffX = moveEvent?.x?.minus(downEvent!!.x) ?: 0.0f
+
+            if (abs(diffX) > SWIPE_THRESHOLD && abs(velocityX) > SWIPE_VEL_THRESHOLD) {
+                if (diffX > 0) {
+                    //r
+                    this@MainActivity.onSwipeRight()
+                } else {
+                    //l
+                    this@MainActivity.onSwipeLeft()
+                }
+                return true
+            }
+
+            return super.onFling(downEvent, moveEvent, velocityX, velocityY)
+        }
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (navFragment == null) {
+            navFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+        }
+        return if (event != null && !detector.onTouchEvent(event)) {
+            true
+        } else {
+            super.onTouchEvent(event)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun onSwipeRight() {
+        val fragment= navFragment?.childFragmentManager?.fragments?.get(0)
+        if (fragment is DayFragment){
+            val dayFragment:DayFragment=fragment
+            dayFragment.prevDay()
+        }
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun onSwipeLeft() {
+        val fragment= navFragment?.childFragmentManager?.fragments?.get(0)
+        if (fragment is DayFragment){
+            val dayFragment:DayFragment=fragment
+            dayFragment.nextDay()
+        }
+    }
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private lateinit var navController:NavController
+    private lateinit var navController: NavController
+    private var navFragment: Fragment? = null
+    private lateinit var detector: GestureDetectorCompat
 
     override fun onCreate(savedInstanceState: Bundle?) {
         createNotificationChannel()
         super.onCreate(savedInstanceState)
-
+        detector = GestureDetectorCompat(this, GestureListener())
+        navFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -52,7 +119,9 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-    private fun settings():Boolean{
+
+    private fun settings(): Boolean {
+
         navController.navigate(R.id.action_DayFragment_to_settingsFragment)
         return true
     }

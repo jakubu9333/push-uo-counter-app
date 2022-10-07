@@ -5,9 +5,7 @@ package com.jakubu9333.pushupcounter
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
@@ -24,7 +22,9 @@ import java.time.LocalDate
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class DayFragment : Fragment() {
-    private lateinit var  fragmentContext: Context
+
+
+    private lateinit var fragmentContext: Context
     private val viewModel: PushUpsViewModel by activityViewModels {
         PushUpsViewModelFactory(
             (activity?.application as MainApp).database.pushUpsDao
@@ -76,30 +76,44 @@ class DayFragment : Fragment() {
         return true
     }
 
+
     @RequiresApi(Build.VERSION_CODES.O)
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-       // addSwipeControls()
-        binding.lifecycleOwner = viewLifecycleOwner
-        val date = DateServicesData()
-        changingDay(date.date)
-        binding.date = date
-        val sp = PreferenceManager.getDefaultSharedPreferences(fragmentContext)
-
-        binding.buttonNext.setOnClickListener {
+    fun nextDay() {
+        if (date.data.value?.today != true) {
             date.addDay()
             changingDay(date.date)
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun prevDay() {
+
+        date.minusDay()
+        changingDay(date.date)
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private val date = DateServicesData()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.lifecycleOwner = viewLifecycleOwner
+        changingDay(date.date)
+        binding.date = date
+        val sp = PreferenceManager.getDefaultSharedPreferences(fragmentContext)
+        binding.buttonNext.setOnClickListener {
+            nextDay()
+        }
         binding.buttonPrev.setOnClickListener {
-            date.minusDay()
-            changingDay(date.date)
+            prevDay()
         }
         binding.floatingActionButton.setOnClickListener {
-
             val notify = sp.getBoolean("notify", true)
-            val minutes=sp.getInt("minutes",30)
-            val seconds=sp.getInt("seconds",0)
+            val minutes = sp.getInt("minutes", 30)
+            val seconds = sp.getInt("seconds", 0)
             val number = numberInEntry()
             if (number > 0) {
                 addToCount(date.date, number)
@@ -111,25 +125,19 @@ class DayFragment : Fragment() {
 
     }
 
-    /*private fun addSwipeControls() {
-        binding.dayFragmentLayout.setOnTouchListener(){
 
-        }
-    }*/
-
-    private lateinit var notifyClass:Notification
+    private lateinit var notifyClass: Notification
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onAttach(context: Context) {
         super.onAttach(context)
         this.fragmentContext = context
-        if (!this::notifyClass.isInitialized){
-            this.notifyClass=Notification(context)
+        if (!this::notifyClass.isInitialized) {
+            this.notifyClass = Notification(context)
         }
 
+
     }
-
-
 
 
     //returns -1 for bad format
@@ -143,8 +151,6 @@ class DayFragment : Fragment() {
         binding.editCounterNum.setText("", TextView.BufferType.SPANNABLE)
         return numberText.toInt()
     }
-
-
 
 
     override fun onDestroyView() {
